@@ -20,36 +20,38 @@
         <h1 id="hero-title">Hello from Miss M and YayC</h1>
         <p class="hero-subtitle" id="hero-subtitle"></p>
       </div>
-      <div class="language-switcher" role="group" aria-label="Language switcher">
-        <button class="lang-button is-active" data-lang="en" type="button">EN</button>
-        <button class="lang-button" data-lang="de" type="button">DE</button>
-        <button class="lang-button" data-lang="ja" type="button">JP</button>
-      </div>
-    </section>
-
-    <section class="panel auth-panel">
-      <div>
-        <h2 id="auth-heading">Admin Login</h2>
-        <p id="auth-copy" class="muted"></p>
-      </div>
-
-      <div id="auth-state" class="auth-state signed-out">
-        <form id="login-form" class="auth-form">
-          <label>
-            <span>Email</span>
-            <input id="login-email" type="email" autocomplete="email" required />
-          </label>
-          <label>
-            <span>Password</span>
-            <input id="login-password" type="password" autocomplete="current-password" required />
-          </label>
-          <button type="submit" class="primary-button" id="login-button">Log in</button>
-        </form>
-
-        <div id="logged-in-box" class="logged-in-box hidden">
-          <p id="logged-in-text" class="status-line"></p>
-          <button type="button" class="secondary-button" id="logout-button">Log out</button>
+      <div class="hero-tools">
+        <div class="language-switcher" role="group" aria-label="Language switcher">
+          <button class="lang-button is-active" data-lang="en" type="button">EN</button>
+          <button class="lang-button" data-lang="de" type="button">DE</button>
+          <button class="lang-button" data-lang="ja" type="button">JP</button>
         </div>
+
+        <section class="panel auth-panel auth-panel-compact">
+          <div>
+            <h2 id="auth-heading">Admin Login</h2>
+            <p id="auth-copy" class="muted"></p>
+          </div>
+
+          <div id="auth-state" class="auth-state signed-out">
+            <form id="login-form" class="auth-form auth-form-compact">
+              <label>
+                <span>Email</span>
+                <input id="login-email" type="email" autocomplete="email" required />
+              </label>
+              <label>
+                <span>Password</span>
+                <input id="login-password" type="password" autocomplete="current-password" required />
+              </label>
+              <button type="submit" class="primary-button" id="login-button">Log in</button>
+            </form>
+
+            <div id="logged-in-box" class="logged-in-box hidden">
+              <p id="logged-in-text" class="status-line"></p>
+              <button type="button" class="secondary-button" id="logout-button">Log out</button>
+            </div>
+          </div>
+        </section>
       </div>
     </section>
 
@@ -85,6 +87,15 @@
           <h2 id="entries-heading">Entries</h2>
           <p id="entries-copy" class="muted"></p>
         </div>
+        <label class="entries-filter">
+          <span id="entries-limit-label">Show</span>
+          <select id="entries-limit-select">
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+        </label>
       </div>
       <div id="entries-list" class="entries-list"></div>
     </section>

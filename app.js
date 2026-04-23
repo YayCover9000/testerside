@@ -20,6 +20,7 @@ const copy = {
     submitButton: "Post entry",
     entriesHeading: "Entries",
     entriesCopy: "Moderation controls only appear for logged-in admins.",
+    entriesLimitLabel: "Show latest",
     emptyState: "No guestbook entries yet.",
     loading: "Loading guestbook entries...",
     configLoading: "Loading site configuration...",
@@ -56,6 +57,7 @@ const copy = {
     submitButton: "Eintrag senden",
     entriesHeading: "Einträge",
     entriesCopy: "Moderationsfunktionen sind nur für eingeloggte Admins sichtbar.",
+    entriesLimitLabel: "Zeige die letzten",
     emptyState: "Noch keine Gästebuch-Einträge vorhanden.",
     loading: "Gästebuch-Einträge werden geladen...",
     configLoading: "Seitenkonfiguration wird geladen...",
@@ -92,6 +94,7 @@ const copy = {
     submitButton: "投稿する",
     entriesHeading: "投稿一覧",
     entriesCopy: "削除などの管理操作はログインした管理者だけに表示されます。",
+    entriesLimitLabel: "表示件数",
     emptyState: "まだ投稿はありません。",
     loading: "投稿を読み込んでいます...",
     configLoading: "サイト設定を読み込んでいます...",
@@ -112,6 +115,7 @@ const copy = {
 const state = {
   lang: "en",
   entries: [],
+  visibleEntryCount: 5,
   currentUser: null,
   isAdmin: false,
   adminByEmail: false,
@@ -155,6 +159,8 @@ function cacheDom() {
   ui.flashArea = document.getElementById("flash-area");
   ui.entriesHeading = document.getElementById("entries-heading");
   ui.entriesCopy = document.getElementById("entries-copy");
+  ui.entriesLimitLabel = document.getElementById("entries-limit-label");
+  ui.entriesLimitSelect = document.getElementById("entries-limit-select");
   ui.entriesList = document.getElementById("entries-list");
   ui.languageButtons = Array.from(document.querySelectorAll(".lang-button"));
 }
@@ -167,6 +173,7 @@ function bindEvents() {
   ui.entryForm.addEventListener("submit", submitEntry);
   ui.loginForm.addEventListener("submit", handleLogin);
   ui.logoutButton.addEventListener("click", handleLogout);
+  ui.entriesLimitSelect.addEventListener("change", handleEntryLimitChange);
 }
 
 function setLanguage(lang) {
@@ -191,6 +198,7 @@ function setLanguage(lang) {
   ui.submitButton.textContent = t.submitButton;
   ui.entriesHeading.textContent = t.entriesHeading;
   ui.entriesCopy.textContent = t.entriesCopy;
+  ui.entriesLimitLabel.textContent = t.entriesLimitLabel;
   ui.entryName.placeholder = t.nameLabel;
   ui.entryMessage.placeholder = t.messageLabel;
 
@@ -246,7 +254,7 @@ async function initializeApp() {
     const value = snapshot.val() || {};
     state.entries = Object.entries(value)
       .map(([id, entry]) => ({ id, ...entry }))
-      .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+      .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
     renderEntries();
   });
 }
@@ -386,6 +394,7 @@ function renderEntries() {
 
   const t = translate();
   ui.entriesList.innerHTML = state.entries
+    .slice(0, state.visibleEntryCount)
     .map((entry) => {
       const author = escapeHtml(entry.author || t.authorFallback);
       const renderedMarkdown = marked.parse(entry.message || "");
@@ -413,6 +422,11 @@ function renderEntries() {
   ui.entriesList.querySelectorAll("[data-delete-id]").forEach((button) => {
     button.addEventListener("click", () => deleteEntry(button.dataset.deleteId));
   });
+}
+
+function handleEntryLimitChange(event) {
+  state.visibleEntryCount = Number(event.target.value) || 5;
+  renderEntries();
 }
 
 function updateAuthUi() {

@@ -46,6 +46,12 @@ textarea {
   padding: 24px 0 20px;
 }
 
+.hero-tools {
+  display: grid;
+  gap: 12px;
+  justify-items: end;
+}
+
 .eyebrow {
   margin: 0 0 10px;
   color: var(--muted);
@@ -139,6 +145,25 @@ textarea {
   align-items: end;
 }
 
+.auth-panel-compact {
+  width: min(320px, 100%);
+  padding: 16px;
+  margin-top: 0;
+}
+
+.auth-panel-compact h2 {
+  font-size: 1rem;
+}
+
+.auth-form-compact {
+  grid-template-columns: 1fr;
+  margin-top: 14px;
+}
+
+.auth-form-compact button {
+  width: 100%;
+}
+
 .entry-form label,
 .auth-form label {
   display: grid;
@@ -147,6 +172,7 @@ textarea {
 }
 
 input,
+select,
 textarea {
   width: 100%;
   border: 1px solid var(--line);
@@ -163,6 +189,7 @@ textarea {
 }
 
 input:focus,
+select:focus,
 textarea:focus,
 button:focus {
   outline: 2px solid transparent;
@@ -210,6 +237,20 @@ button:focus {
   display: grid;
   gap: 14px;
   margin-top: 18px;
+}
+
+.entries-filter {
+  display: inline-flex;
+  gap: 10px;
+  align-items: center;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.entries-filter select {
+  min-width: 88px;
+  background: var(--panel-strong);
+  color: var(--ink);
 }
 
 .entry-card {
@@ -295,6 +336,10 @@ button:focus {
 
   .hero {
     grid-template-columns: 1fr;
+  }
+
+  .hero-tools {
+    justify-items: stretch;
   }
 
   .auth-form {
