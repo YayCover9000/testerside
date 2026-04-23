@@ -5,16 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>imexjap.de</title>
   <style>
+    :root {
+      --bg: #f5f7fa;
+      --text: #333;
+      --accent: #0077cc;
+      --btn-bg: #0077cc;
+      --btn-hover: #005a99;
+      --border: #ddd;
+    }
+
     body {
       font-family: 'Segoe UI', sans-serif;
       text-align: center;
       padding: 60px;
-      background: #f5f7fa;
-      color: #333;
+      background: var(--bg);
+      color: var(--text);
+      transition: all 0.3s ease;
     }
-    h1 {
-      color: #0077cc;
-    }
+
     .container {
       max-width: 800px;
       margin: 0 auto;
@@ -23,13 +31,119 @@
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
+
+    h1 {
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    .lang-toggle {
+      margin: 20px 0;
+      padding: 10px 20px;
+      background: var(--btn-bg);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.3s;
+    }
+
+    .lang-toggle:hover {
+      background: var(--btn-hover);
+    }
+
+    .text {
+      margin: 20px 0;
+      line-height: 1.6;
+    }
+
+    .text.ja {
+      display: none;
+    }
+
+    .text.ja.active {
+      display: block;
+    }
+
+    .text.de.active {
+      display: block;
+    }
+
+    .footer {
+      margin-top: 30px;
+      font-size: 14px;
+      color: #777;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 30px 15px;
+      }
+      .container {
+        padding: 25px;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Willkommen auf imexjap.de</h1>
+
+<div class="container">
+  <h1 id="title">Willkommen auf imexjap.de</h1>
+
+  <button id="langToggle" class="lang-toggle">日本語に切り替え</button>
+
+  <div class="text de active">
     <p>Dies ist eine Testseite – bald wird sie live sein! 🚀</p>
-    <p><em>Hosted with ❤️ via Cloudflare Pages</em></p>
+    <p>Wir freuen uns, Sie auf unserer Website begrüßen zu dürfen.</p>
   </div>
+
+  <div class="text ja">
+    <p>これはテストページです – まもなく本格的に公開されます！ 🚀</p>
+    <p>ウェブサイトへようこそ。</p>
+  </div>
+
+  <div class="footer">
+    <p>Hosted with ❤️ via Cloudflare Pages</p>
+  </div>
+</div>
+
+<script>
+  const toggleBtn = document.getElementById('langToggle');
+  const title = document.getElementById('title');
+  const texts = document.querySelectorAll('.text');
+
+  // Check saved language preference
+  let isJapanese = localStorage.getItem('lang') === 'ja';
+
+  // Set initial language
+  updateLanguage();
+
+  // Toggle language
+  toggleBtn.addEventListener('click', () => {
+    isJapanese = !isJapanese;
+    localStorage.setItem('lang', isJapanese ? 'ja' : 'de');
+    updateLanguage();
+  });
+
+  function updateLanguage() {
+    if (isJapanese) {
+      title.textContent = 'imexjap.deへようこそ';
+      toggleBtn.textContent = 'Germanに切り替え';
+      texts.forEach(text => {
+        text.classList.remove('active');
+      });
+      document.querySelector('.text.ja').classList.add('active');
+    } else {
+      title.textContent = 'Willkommen auf imexjap.de';
+      toggleBtn.textContent = '日本語に切り替え';
+      texts.forEach(text => {
+        text.classList.remove('active');
+      });
+      document.querySelector('.text.de').classList.add('active');
+    }
+  }
+</script>
+
 </body>
 </html>
