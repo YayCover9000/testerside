@@ -3,8 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Online Obsidian</title>
+  <title>Online Obsidian (Synchronisiert)</title>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.7.1/dist/jszip.min.js"></script>
   <style>
     body {
@@ -125,30 +127,57 @@
 </div>
 
 <script>
+  // Firebase Config (korrekt für compat-SDK)
+  const firebaseConfig = {
+    apiKey: "AIzaSyBqqO2kcSqYGf3GVUzKu_2Qy4iiCrdbgZE",
+    authDomain: "imexjap2-fc4e5.firebaseapp.com",
+    databaseURL: "https://imexjap2-fc4e5-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "imexjap2-fc4e5",
+    storageBucket: "imexjap2-fc4e5.firebasestorage.app",
+    messagingSenderId: "945504421343",
+    appId: "1:945504421343:web:75aca1059896cfe865f06a",
+    measurementId: "G-HQ7D1T07Q4"
+  };
+
+  // Firebase initialisieren (kompatibel)
+  firebase.initializeApp(firebaseConfig);
+  const database = firebase.database();
   const STORAGE_KEY = 'obsidian_files';
+
+  // Lokale Dateien (Backup)
   let files = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
   let currentFile = null;
 
-  function loadFiles() {
+  // Lade Dateien aus Firebase
+  function loadFilesFromFirebase() {
     const fileList = document.getElementById('file-list');
     fileList.innerHTML = '';
 
-    const sortedFiles = Object.keys(files).sort();
-    sortedFiles.forEach(filename => {
-      const li = document.createElement('li');
-      const a = document.createElement('a');
-      a.href = '#';
-      a.textContent = filename;
-      a.onclick = () => openFileFromList(filename);
-      li.appendChild(a);
-      fileList.appendChild(li);
-    });
+    database.ref('files').on('value', (snapshot) => {
+      const firebaseFiles = snapshot.val() || {};
+      Object.keys(firebaseFiles).forEach(filename => {
+        files[filename] = firebaseFiles[filename];
+      });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(files));
 
-    if (sortedFiles.length === 0) {
-      fileList.innerHTML = '<li><em>Keine Dateien vorhanden</em></li>';
-    }
+      const sortedFiles = Object.keys(files).sort();
+      sortedFiles.forEach(filename => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = '#';
+        a.textContent = filename;
+        a.onclick = () => openFileFromList(filename);
+        li.appendChild(a);
+        fileList.appendChild(li);
+      });
+
+      if (sortedFiles.length === 0) {
+        fileList.innerHTML = '<li><em>Keine Dateien vorhanden</em></li>';
+      }
+    });
   }
 
+  // Öffne Datei aus Liste
   function openFileFromList(filename) {
     currentFile = filename;
     document.getElementById('editor-textarea').value = files[filename];
@@ -156,17 +185,17 @@
     document.querySelector(`#file-list a[href="#"][onclick="openFileFromList('${filename}')"]`).classList.add('active');
   }
 
+  // Speichere Datei in Firebase + localStorage
   function saveFile() {
-    if (!currentFile) {
-      alert('Bitte erst eine Datei auswählen oder erstellen!');
-      return;
-    }
-    files[currentFile] = document.getElementById('editor-textarea').value;
+    if (!currentFile) return;
+    const content = document.getElementById('editor-textarea').value;
+    database.ref('files/' + currentFile).set(content);
+    files[currentFile] = content;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(files));
     alert('Gespeichert!');
-    loadFiles();
   }
 
+  // Neue Datei erstellen
   function newFile() {
     const filename = prompt('Gib einen Dateinamen ein (z. B. "notiz.md")');
     if (!filename) return;
@@ -175,12 +204,14 @@
       return;
     }
     files[filename] = '# ' + filename.replace('.md', '');
+    database.ref('files/' + filename).set(files[filename]);
     currentFile = filename;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(files));
-    loadFiles();
+    loadFilesFromFirebase();
     document.getElementById('editor-textarea').value = files[filename];
   }
 
+  // Alle Dateien herunterladen (ZIP)
   function downloadAll() {
     const zip = new JSZip();
     Object.keys(files).forEach(filename => {
@@ -196,6 +227,7 @@
     });
   }
 
+  // Datei öffnen (Upload)
   function openFile() {
     document.getElementById('file-input').click();
   }
@@ -207,19 +239,19 @@
     reader.onload = function(e) {
       const content = e.target.result;
       const filename = file.name;
+      database.ref('files/' + filename).set(content);
       files[filename] = content;
       currentFile = filename;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(files));
-      loadFiles();
+      loadFilesFromFirebase();
       document.getElementById('editor-textarea').value = content;
     };
     reader.readAsText(file);
   });
 
-  document.getElementById('new-file-btn').addEventListener('click', newFile);
-
+  // Initialisierung
   window.onload = function() {
-    loadFiles();
+    loadFilesFromFirebase();
     const textarea = document.getElementById('editor-textarea');
     textarea.addEventListener('input', function() {
       if (currentFile) {
@@ -228,6 +260,9 @@
       }
     });
   };
+
+  // Buttons
+  document.getElementById('new-file-btn').addEventListener('click', newFile);
 </script>
 </body>
 </html>
