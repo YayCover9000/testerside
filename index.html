@@ -3,147 +3,231 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>imexjap.de</title>
+  <title>Online Obsidian</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.7.1/dist/jszip.min.js"></script>
   <style>
-    :root {
-      --bg: #f5f7fa;
-      --text: #333;
-      --accent: #0077cc;
-      --btn-bg: #0077cc;
-      --btn-hover: #005a99;
-      --border: #ddd;
-    }
-
     body {
       font-family: 'Segoe UI', sans-serif;
-      text-align: center;
-      padding: 60px;
-      background: var(--bg);
-      color: var(--text);
-      transition: all 0.3s ease;
+      margin: 0;
+      padding: 0;
+      background: #f5f5f5;
+      display: flex;
+      height: 100vh;
     }
-
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
+    #sidebar {
+      width: 250px;
+      background: #2c3e50;
+      color: white;
+      padding: 15px;
+      overflow-y: auto;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    }
+    #sidebar h2 {
+      margin-top: 0;
+      font-size: 1.3em;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #34495e;
+      padding-bottom: 10px;
+    }
+    #sidebar ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    #sidebar li {
+      margin-bottom: 5px;
+    }
+    #sidebar a {
+      color: #ecf0f1;
+      text-decoration: none;
+      display: block;
+      padding: 5px 10px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+    #sidebar a:hover {
+      background: #34495e;
+    }
+    #sidebar a.active {
+      background: #3498db;
+    }
+    #editor {
+      flex: 1;
+      padding: 20px;
       background: white;
-      padding: 40px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      overflow-y: auto;
+      position: relative;
     }
-
-    h1 {
-      color: var(--accent);
-      margin-bottom: 10px;
+    #editor textarea {
+      width: 100%;
+      height: 100%;
+      border: none;
+      outline: none;
+      resize: none;
+      font-family: 'Courier New', monospace;
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 0;
+      margin: 0;
+      background: transparent;
+      color: #333;
     }
-
-    .lang-toggle {
-      margin: 20px 0;
-      padding: 10px 20px;
-      background: var(--btn-bg);
+    #preview {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: transparent;
+      padding: 0;
+      margin: 0;
+      overflow-y: auto;
+    }
+    #toolbar {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      gap: 10px;
+      z-index: 1000;
+    }
+    button {
+      padding: 8px 12px;
+      background: #3498db;
       color: white;
       border: none;
-      border-radius: 6px;
+      border-radius: 4px;
       cursor: pointer;
-      font-size: 16px;
-      transition: background 0.3s;
-    }
-
-    .lang-toggle:hover {
-      background: var(--btn-hover);
-    }
-
-    .text {
-      margin: 20px 0;
-      line-height: 1.6;
-    }
-
-    .text.ja {
-      display: none;
-    }
-
-    .text.ja.active {
-      display: block;
-    }
-
-    .text.de.active {
-      display: block;
-    }
-
-    .footer {
-      margin-top: 30px;
       font-size: 14px;
-      color: #777;
     }
-
-    @media (max-width: 600px) {
-      body {
-        padding: 30px 15px;
-      }
-      .container {
-        padding: 25px;
-      }
+    button:hover {
+      background: #2980b9;
+    }
+    .file-input {
+      display: none;
     }
   </style>
 </head>
 <body>
+<div id="sidebar">
+  <h2>📁 Dateien</h2>
+  <ul id="file-list"></ul>
+  <button id="new-file-btn">+ Neue Datei</button>
+</div>
 
-<div class="container">
-  <h1 id="title">Willkommen auf imexjap.de</h1>
-
-  <button id="langToggle" class="lang-toggle">日本語に切り替え</button>
-
-  <div class="text de active">
-    <p>Dies ist eine Testseite – bald wird sie live sein! 🚀</p>
-    <p>Wir freuen uns, Sie auf unserer Website begrüßen zu dürfen.</p>
+<div id="editor">
+  <div id="toolbar">
+    <button onclick="saveFile()">Speichern</button>
+    <button onclick="downloadAll()">Herunterladen (ZIP)</button>
+    <button onclick="openFile()">Datei öffnen</button>
+    <input type="file" id="file-input" class="file-input" accept=".md">
   </div>
-
-  <div class="text ja">
-    <p>これはテストページです – まもなく本格的に公開されます！ 🚀</p>
-    <p>ウェブサイトへようこそ。</p>
-  </div>
-
-  <div class="footer">
-    <p>Hosted with ❤️ via Cloudflare Pages</p>
-  </div>
+  <textarea id="editor-textarea" placeholder="Schreibe deine Notiz..."></textarea>
 </div>
 
 <script>
-  const toggleBtn = document.getElementById('langToggle');
-  const title = document.getElementById('title');
-  const texts = document.querySelectorAll('.text');
+  const STORAGE_KEY = 'obsidian_files';
+  let files = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+  let currentFile = null;
 
-  // Check saved language preference
-  let isJapanese = localStorage.getItem('lang') === 'ja';
+  function loadFiles() {
+    const fileList = document.getElementById('file-list');
+    fileList.innerHTML = '';
 
-  // Set initial language
-  updateLanguage();
+    const sortedFiles = Object.keys(files).sort();
+    sortedFiles.forEach(filename => {
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      a.href = '#';
+      a.textContent = filename;
+      a.onclick = () => openFileFromList(filename);
+      li.appendChild(a);
+      fileList.appendChild(li);
+    });
 
-  // Toggle language
-  toggleBtn.addEventListener('click', () => {
-    isJapanese = !isJapanese;
-    localStorage.setItem('lang', isJapanese ? 'ja' : 'de');
-    updateLanguage();
-  });
-
-  function updateLanguage() {
-    if (isJapanese) {
-      title.textContent = 'imexjap.deへようこそ';
-      toggleBtn.textContent = 'Germanに切り替え';
-      texts.forEach(text => {
-        text.classList.remove('active');
-      });
-      document.querySelector('.text.ja').classList.add('active');
-    } else {
-      title.textContent = 'Willkommen auf imexjap.de';
-      toggleBtn.textContent = '日本語に切り替え';
-      texts.forEach(text => {
-        text.classList.remove('active');
-      });
-      document.querySelector('.text.de').classList.add('active');
+    if (sortedFiles.length === 0) {
+      fileList.innerHTML = '<li><em>Keine Dateien vorhanden</em></li>';
     }
   }
-</script>
 
+  function openFileFromList(filename) {
+    currentFile = filename;
+    document.getElementById('editor-textarea').value = files[filename];
+    document.querySelectorAll('#file-list a').forEach(a => a.classList.remove('active'));
+    document.querySelector(`#file-list a[href="#"][onclick="openFileFromList('${filename}')"]`).classList.add('active');
+  }
+
+  function saveFile() {
+    if (!currentFile) {
+      alert('Bitte erst eine Datei auswählen oder erstellen!');
+      return;
+    }
+    files[currentFile] = document.getElementById('editor-textarea').value;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(files));
+    alert('Gespeichert!');
+    loadFiles();
+  }
+
+  function newFile() {
+    const filename = prompt('Gib einen Dateinamen ein (z. B. "notiz.md")');
+    if (!filename) return;
+    if (files[filename]) {
+      alert('Datei existiert bereits!');
+      return;
+    }
+    files[filename] = '# ' + filename.replace('.md', '');
+    currentFile = filename;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(files));
+    loadFiles();
+    document.getElementById('editor-textarea').value = files[filename];
+  }
+
+  function downloadAll() {
+    const zip = new JSZip();
+    Object.keys(files).forEach(filename => {
+      zip.file(filename, files[filename]);
+    });
+    zip.generateAsync({ type: 'blob' }).then(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'obsidian-backup.zip';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  }
+
+  function openFile() {
+    document.getElementById('file-input').click();
+  }
+
+  document.getElementById('file-input').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const content = e.target.result;
+      const filename = file.name;
+      files[filename] = content;
+      currentFile = filename;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(files));
+      loadFiles();
+      document.getElementById('editor-textarea').value = content;
+    };
+    reader.readAsText(file);
+  });
+
+  document.getElementById('new-file-btn').addEventListener('click', newFile);
+
+  window.onload = function() {
+    loadFiles();
+    const textarea = document.getElementById('editor-textarea');
+    textarea.addEventListener('input', function() {
+      if (currentFile) {
+        files[currentFile] = textarea.value;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(files));
+      }
+    });
+  };
+</script>
 </body>
 </html>
