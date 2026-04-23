@@ -3,7 +3,6 @@ const fs = require("fs");
 const path = require("path");
 
 const rootDir = __dirname;
-const publicDir = path.join(rootDir, "public");
 const env = loadEnv(path.join(rootDir, ".env"));
 
 const mimeTypes = {
@@ -37,17 +36,16 @@ const clientConfig = {
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, "http://localhost");
 
-  if (url.pathname === "/config.js") {
-    const payload = `window.APP_CONFIG = ${JSON.stringify(clientConfig, null, 2)};`;
-    res.writeHead(200, { "Content-Type": "application/javascript; charset=utf-8" });
-    res.end(payload);
+  if (url.pathname === "/api/config") {
+    res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+    res.end(JSON.stringify(clientConfig, null, 2));
     return;
   }
 
-  let filePath = url.pathname === "/" ? path.join(publicDir, "index.html") : path.join(publicDir, url.pathname);
+  let filePath = url.pathname === "/" ? path.join(rootDir, "index.html") : path.join(rootDir, url.pathname);
   filePath = path.normalize(filePath);
 
-  if (!filePath.startsWith(publicDir)) {
+  if (!filePath.startsWith(rootDir)) {
     res.writeHead(403, { "Content-Type": "text/plain; charset=utf-8" });
     res.end("Forbidden");
     return;

@@ -6,8 +6,9 @@ Simple multilingual guestbook with:
 - Firebase Realtime Database storage
 - Markdown guestbook messages
 - Admin login with Firebase Auth
-- Main admin email configured locally in `.env`
-- Docker support
+- Main admin email configured via environment variables
+- Vercel-ready deployment
+- Optional local preview server
 
 ## Local setup
 
@@ -16,7 +17,7 @@ Simple multilingual guestbook with:
 3. Create the admin user in Firebase Authentication (Email/Password)
 4. Add the admin user's Firebase Auth UID under `admins/<UID> = true` in Realtime Database
 5. Apply the rules from `firebase.rules.json`
-4. Start the app:
+6. Start the app:
 
 ```bash
 node server.js
@@ -24,11 +25,25 @@ node server.js
 
 Then open `http://localhost:3000`.
 
-## Docker
+## Vercel deployment
 
-```bash
-docker compose up --build
-```
+In Vercel Project Settings -> Environment Variables, add:
+
+- `PAGE_TITLE`
+- `MAIN_ADMIN_EMAIL`
+- `FIREBASE_API_KEY`
+- `FIREBASE_AUTH_DOMAIN`
+- `FIREBASE_DATABASE_URL`
+- `FIREBASE_PROJECT_ID`
+- `FIREBASE_STORAGE_BUCKET`
+- `FIREBASE_MESSAGING_SENDER_ID`
+- `FIREBASE_APP_ID`
+
+Then redeploy the project. The frontend loads these values through `/api/config`.
+
+## Optional Docker
+
+The old Docker setup can still be adapted, but the primary deployment target is now Vercel.
 
 ## Firebase structure
 

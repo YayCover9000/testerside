@@ -6,7 +6,7 @@ const copy = {
     heroTitle: "Hello from Miss M and YayC",
     heroSubtitle: "Leave a note in English, Deutsch, or Japanese. Messages support Markdown and appear below in the order they were created.",
     authHeading: "Admin login",
-    authCopy: "Admins can sign in to moderate entries. The main admin email comes from the local server configuration.",
+    authCopy: "Admins can sign in to moderate entries. The main admin email comes from the deployment configuration.",
     loginButton: "Log in",
     logoutButton: "Log out",
     loggedIn: "Signed in as",
@@ -19,17 +19,18 @@ const copy = {
     markdownHint: "You can use Markdown like **bold**, *italic*, lists, and links.",
     submitButton: "Post entry",
     entriesHeading: "Entries",
-    entriesCopy: "Newest moderation controls only appear for logged-in admins.",
+    entriesCopy: "Moderation controls only appear for logged-in admins.",
     emptyState: "No guestbook entries yet.",
     loading: "Loading guestbook entries...",
+    configLoading: "Loading site configuration...",
     posting: "Posting...",
-    deleting: "Deleting...",
     deleteButton: "Delete",
     by: "by",
     loginError: "Login failed. Please check the email and password.",
     entryError: "Could not save your entry.",
     deleteError: "Could not delete this entry.",
-    firebaseError: "Firebase is not configured yet. Please fill in the .env file first.",
+    firebaseError: "Firebase is not configured yet. Please fill in the Vercel environment variables first.",
+    configError: "The site configuration could not be loaded.",
     authRequired: "Only admins can delete entries.",
     postedSuccess: "Your message has been posted.",
     authorFallback: "Anonymous"
@@ -41,7 +42,7 @@ const copy = {
     heroTitle: "Hallo von Miss M und YayC",
     heroSubtitle: "Hinterlasse eine Nachricht auf Englisch, Deutsch oder Japanisch. Nachrichten unterstützen Markdown und erscheinen unten in der Reihenfolge ihrer Erstellung.",
     authHeading: "Admin-Anmeldung",
-    authCopy: "Admins können sich anmelden und Einträge moderieren. Die Hauptadmin-E-Mail kommt aus der lokalen Server-Konfiguration.",
+    authCopy: "Admins können sich anmelden und Einträge moderieren. Die Hauptadmin-E-Mail kommt aus der Deployment-Konfiguration.",
     loginButton: "Anmelden",
     logoutButton: "Abmelden",
     loggedIn: "Angemeldet als",
@@ -57,14 +58,15 @@ const copy = {
     entriesCopy: "Moderationsfunktionen sind nur für eingeloggte Admins sichtbar.",
     emptyState: "Noch keine Gästebuch-Einträge vorhanden.",
     loading: "Gästebuch-Einträge werden geladen...",
+    configLoading: "Seitenkonfiguration wird geladen...",
     posting: "Wird gespeichert...",
-    deleting: "Wird gelöscht...",
     deleteButton: "Löschen",
     by: "von",
     loginError: "Anmeldung fehlgeschlagen. Bitte E-Mail und Passwort prüfen.",
     entryError: "Der Eintrag konnte nicht gespeichert werden.",
     deleteError: "Dieser Eintrag konnte nicht gelöscht werden.",
-    firebaseError: "Firebase ist noch nicht konfiguriert. Bitte zuerst die .env-Datei ausfüllen.",
+    firebaseError: "Firebase ist noch nicht konfiguriert. Bitte zuerst die Vercel-Umgebungsvariablen eintragen.",
+    configError: "Die Seitenkonfiguration konnte nicht geladen werden.",
     authRequired: "Nur Admins dürfen Einträge löschen.",
     postedSuccess: "Deine Nachricht wurde gespeichert.",
     authorFallback: "Anonym"
@@ -76,7 +78,7 @@ const copy = {
     heroTitle: "Miss M と YayC からこんにちは",
     heroSubtitle: "英語、ドイツ語、日本語でメッセージを残せます。Markdown に対応していて、投稿は作成順で下に表示されます。",
     authHeading: "管理者ログイン",
-    authCopy: "管理者はログインして投稿を管理できます。メイン管理者メールはローカルのサーバー設定から読み込みます。",
+    authCopy: "管理者はログインして投稿を管理できます。メイン管理者メールはデプロイ設定から読み込みます。",
     loginButton: "ログイン",
     logoutButton: "ログアウト",
     loggedIn: "ログイン中",
@@ -92,14 +94,15 @@ const copy = {
     entriesCopy: "削除などの管理操作はログインした管理者だけに表示されます。",
     emptyState: "まだ投稿はありません。",
     loading: "投稿を読み込んでいます...",
+    configLoading: "サイト設定を読み込んでいます...",
     posting: "投稿中...",
-    deleting: "削除中...",
     deleteButton: "削除",
     by: "投稿者",
     loginError: "ログインに失敗しました。メールアドレスとパスワードを確認してください。",
     entryError: "投稿を保存できませんでした。",
     deleteError: "この投稿を削除できませんでした。",
-    firebaseError: "Firebase はまだ設定されていません。.env を先に入力してください。",
+    firebaseError: "Firebase がまだ設定されていません。先に Vercel の環境変数を入力してください。",
+    configError: "サイト設定を読み込めませんでした。",
     authRequired: "投稿を削除できるのは管理者だけです。",
     postedSuccess: "メッセージを投稿しました。",
     authorFallback: "匿名"
@@ -114,16 +117,17 @@ const state = {
   adminByEmail: false,
   adminByUid: false,
   database: null,
-  auth: null
+  auth: null,
+  appConfig: null
 };
 
 const ui = {};
 
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("DOMContentLoaded", async () => {
   cacheDom();
   bindEvents();
   setLanguage("en");
-  initializeApp();
+  await initializeApp();
 });
 
 function cacheDom() {
@@ -170,7 +174,7 @@ function setLanguage(lang) {
   const t = copy[state.lang];
 
   document.documentElement.lang = t.htmlLang;
-  document.title = `${t.heroTitle} | ${window.APP_CONFIG.pageTitle || "Guestbook"}`;
+  document.title = `${t.heroTitle} | ${(state.appConfig && state.appConfig.pageTitle) || "Guestbook"}`;
 
   ui.welcomeLabel.textContent = t.welcomeLabel;
   ui.heroTitle.textContent = t.heroTitle;
@@ -198,19 +202,32 @@ function setLanguage(lang) {
   renderEntries();
 }
 
-function initializeApp() {
+async function initializeApp() {
+  marked.setOptions({
+    breaks: true,
+    gfm: true
+  });
+
+  ui.entriesList.innerHTML = `<p class="empty-state">${escapeHtml(translate().configLoading)}</p>`;
+
+  try {
+    state.appConfig = await loadRuntimeConfig();
+  } catch (error) {
+    console.error(error);
+    renderMessage("error", translate().configError);
+    disableForms();
+    return;
+  }
+
+  setLanguage(state.lang);
+
   if (!hasFirebaseConfig()) {
     renderMessage("error", translate().firebaseError);
     disableForms();
     return;
   }
 
-  marked.setOptions({
-    breaks: true,
-    gfm: true
-  });
-
-  firebase.initializeApp(window.APP_CONFIG.firebaseConfig);
+  firebase.initializeApp(state.appConfig.firebaseConfig);
   state.database = firebase.database();
   state.auth = firebase.auth();
 
@@ -234,8 +251,22 @@ function initializeApp() {
   });
 }
 
+async function loadRuntimeConfig() {
+  const response = await fetch("/api/config", {
+    headers: {
+      Accept: "application/json"
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Config request failed: ${response.status}`);
+  }
+
+  return response.json();
+}
+
 function hasFirebaseConfig() {
-  const config = window.APP_CONFIG && window.APP_CONFIG.firebaseConfig;
+  const config = state.appConfig && state.appConfig.firebaseConfig;
   if (!config) {
     return false;
   }
@@ -250,6 +281,8 @@ async function submitEntry(event) {
     renderMessage("error", translate().firebaseError);
     return;
   }
+
+  clearMessage();
 
   const author = ui.entryName.value.trim() || translate().authorFallback;
   const message = ui.entryMessage.value.trim();
@@ -290,6 +323,8 @@ async function handleLogin(event) {
     return;
   }
 
+  clearMessage();
+
   const email = ui.loginEmail.value.trim();
   const password = ui.loginPassword.value;
   const originalLabel = ui.loginButton.textContent;
@@ -314,6 +349,7 @@ async function handleLogout() {
     return;
   }
 
+  clearMessage();
   await state.auth.signOut();
 }
 
@@ -327,6 +363,8 @@ async function deleteEntry(id) {
   if (!confirmed) {
     return;
   }
+
+  clearMessage();
 
   try {
     await state.database.ref(`guestbookEntries/${id}`).remove();
@@ -397,11 +435,11 @@ function translate() {
 }
 
 function isConfiguredAdminEmail(user) {
-  if (!user || !user.email) {
+  if (!user || !user.email || !state.appConfig) {
     return false;
   }
 
-  const configuredAdmin = (window.APP_CONFIG.mainAdminEmail || "").trim().toLowerCase();
+  const configuredAdmin = (state.appConfig.mainAdminEmail || "").trim().toLowerCase();
   return user.email.trim().toLowerCase() === configuredAdmin;
 }
 
@@ -438,6 +476,11 @@ function renderMessage(type, message) {
   const className = type === "error" ? "error-box" : "status-line";
   ui.flashArea.classList.remove("hidden");
   ui.flashArea.innerHTML = `<p class="${className}">${escapeHtml(message)}</p>`;
+}
+
+function clearMessage() {
+  ui.flashArea.classList.add("hidden");
+  ui.flashArea.innerHTML = "";
 }
 
 function disableForms() {
