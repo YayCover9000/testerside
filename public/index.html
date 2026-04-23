@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Miss M and YayC Guestbook</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script defer src="/config.js"></script>
+  <script defer src="/app.js"></script>
+</head>
+<body>
+  <main class="page-shell">
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow" id="welcome-label">Guestbook</p>
+        <h1 id="hero-title">Hello from Miss M and YayC</h1>
+        <p class="hero-subtitle" id="hero-subtitle"></p>
+      </div>
+      <div class="language-switcher" role="group" aria-label="Language switcher">
+        <button class="lang-button is-active" data-lang="en" type="button">EN</button>
+        <button class="lang-button" data-lang="de" type="button">DE</button>
+        <button class="lang-button" data-lang="ja" type="button">JP</button>
+      </div>
+    </section>
+
+    <section class="panel auth-panel">
+      <div>
+        <h2 id="auth-heading">Admin Login</h2>
+        <p id="auth-copy" class="muted"></p>
+      </div>
+
+      <div id="auth-state" class="auth-state signed-out">
+        <form id="login-form" class="auth-form">
+          <label>
+            <span>Email</span>
+            <input id="login-email" type="email" autocomplete="email" required />
+          </label>
+          <label>
+            <span>Password</span>
+            <input id="login-password" type="password" autocomplete="current-password" required />
+          </label>
+          <button type="submit" class="primary-button" id="login-button">Log in</button>
+        </form>
+
+        <div id="logged-in-box" class="logged-in-box hidden">
+          <p id="logged-in-text" class="status-line"></p>
+          <button type="button" class="secondary-button" id="logout-button">Log out</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel composer-panel">
+      <div class="panel-heading">
+        <div>
+          <h2 id="guestbook-heading">Leave a message</h2>
+          <p id="guestbook-copy" class="muted"></p>
+        </div>
+      </div>
+
+      <div id="flash-area" class="flash-area hidden" aria-live="polite"></div>
+
+      <form id="entry-form" class="entry-form">
+        <label>
+          <span id="name-label">Name</span>
+          <input id="entry-name" type="text" maxlength="60" required />
+        </label>
+        <label>
+          <span id="message-label">Message</span>
+          <textarea id="entry-message" rows="7" maxlength="3000" required></textarea>
+        </label>
+        <div class="form-actions">
+          <p id="markdown-hint" class="muted"></p>
+          <button type="submit" class="primary-button" id="submit-button">Post entry</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel entries-panel">
+      <div class="panel-heading">
+        <div>
+          <h2 id="entries-heading">Entries</h2>
+          <p id="entries-copy" class="muted"></p>
+        </div>
+      </div>
+      <div id="entries-list" class="entries-list"></div>
+    </section>
+  </main>
+</body>
+</html>

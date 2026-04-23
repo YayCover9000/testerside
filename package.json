@@ -1,0 +1,9 @@
+{
+  "name": "miss-m-yayc-guestbook",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Multilingual guestbook with Firebase and admin controls",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

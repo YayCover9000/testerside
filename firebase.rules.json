@@ -1,0 +1,18 @@
+{
+  "rules": {
+    "guestbookEntries": {
+      ".read": true,
+      "$entryId": {
+        ".write": "(!data.exists() && newData.exists()) || (data.exists() && !newData.exists() && root.child('admins').child(auth.uid).val() === true)",
+        ".validate": "newData.hasChildren(['author', 'message', 'language', 'createdAt']) && newData.child('author').isString() && newData.child('author').val().length > 0 && newData.child('author').val().length <= 60 && newData.child('message').isString() && newData.child('message').val().length > 0 && newData.child('message').val().length <= 3000 && newData.child('language').isString() && newData.child('createdAt').isNumber()"
+      }
+    },
+    "admins": {
+      ".read": "auth != null",
+      "$uid": {
+        ".write": "auth != null && root.child('admins').child(auth.uid).val() === true",
+        ".validate": "newData.val() === true"
+      }
+    }
+  }
+}
