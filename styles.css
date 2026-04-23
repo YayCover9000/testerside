@@ -40,16 +40,22 @@ textarea {
 
 .hero {
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 24px;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 32px;
   align-items: start;
   padding: 24px 0 20px;
 }
 
+.hero-copy {
+  min-width: 0;
+  padding-right: 12px;
+}
+
 .hero-tools {
   display: grid;
-  gap: 12px;
+  gap: 10px;
   justify-items: end;
+  align-self: start;
 }
 
 .eyebrow {
@@ -79,6 +85,7 @@ textarea {
   grid-auto-flow: column;
   gap: 8px;
   align-self: start;
+  justify-self: end;
 }
 
 .lang-button,
@@ -146,22 +153,39 @@ textarea {
 }
 
 .auth-panel-compact {
-  width: min(320px, 100%);
-  padding: 16px;
+  width: 100%;
+  max-width: 280px;
+  padding: 14px;
   margin-top: 0;
+  box-shadow: 0 10px 24px rgba(72, 46, 27, 0.06);
 }
 
 .auth-panel-compact h2 {
+  margin-bottom: 4px;
   font-size: 1rem;
+}
+
+.auth-panel-compact .muted {
+  font-size: 0.88rem;
+  line-height: 1.45;
 }
 
 .auth-form-compact {
   grid-template-columns: 1fr;
-  margin-top: 14px;
+  gap: 12px;
+  margin-top: 12px;
 }
 
 .auth-form-compact button {
   width: 100%;
+}
+
+.auth-form-compact label {
+  gap: 6px;
+}
+
+.auth-form-compact input {
+  padding: 10px 12px;
 }
 
 .entry-form label,
@@ -324,6 +348,21 @@ button:focus {
   margin-top: 18px;
 }
 
+.auth-panel-compact .logged-in-box {
+  margin-top: 12px;
+  gap: 10px;
+}
+
+.auth-panel-compact .status-line {
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.auth-panel-compact .secondary-button,
+.auth-panel-compact .primary-button {
+  min-height: 38px;
+}
+
 .hidden {
   display: none !important;
 }
@@ -340,6 +379,10 @@ button:focus {
 
   .hero-tools {
     justify-items: stretch;
+  }
+
+  .auth-panel-compact {
+    max-width: none;
   }
 
   .auth-form {
